@@ -1,5 +1,7 @@
-# derived from https://medium.com/datalogue/attention-in-keras-1892773a4f22
+""" modAttentionV2loop.py
+Implementation of a Attention RNN model derived from https://medium.com/datalogue/attention-in-keras-1892773a4f22 """
 
+#Librairies
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,10 +12,18 @@ class Attention(nn.Module):
     def __init__(self, sample_size, h_dim, z_dim, batch_size):
         """
         Implements an Attention model that takes in a sequence encoded by an
-        encoder and outputs the decoded states 
-        :param h_dim: dimension of the hidden state and the attention matrices
-        :param z_dim: the number of labels in the encoded space
-        references:
+        encoder and outputs the decoded states.
+        
+        Arguments :
+            sample_size: size of the samples
+            h_dim: dimension of the hidden state and the attention matrices
+            z_dim: the number of labels in the encoded space
+            batch_size: size of the minibatch
+        
+        Returns : 
+            Attention object
+            
+        References:
             Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 
             "Neural machine translation by jointly learning to align and translate." 
             arXiv preprint arXiv:1409.0473 (2014).
@@ -29,13 +39,18 @@ class Attention(nn.Module):
 
 
     def init_hidden(self):
-        # Before we've done anything, we dont have any hidden state.
+        # Before we've done anything, we don't have any hidden state
+
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
         return (Variable(torch.zeros(1, self.batch_size, self.h_dim)),
                 Variable(torch.zeros(1, self.batch_size, self.h_dim)))
         
     def get_initial_state(self, encoded):
+        # apply the matrix on the first time step to get the initial s0
+        fs = nn.Linear(self.z_dim, self.h_dim)
+        s0 = F.tanh(fs(encoded[0,:]))
 
+        # initialize a vector of (batchsize,output_dim)
         # apply the matrix on the first time step to get the initial s0.
         fs = nn.Linear(self.z_dim, self.h_dim)
         s0 = F.tanh(fs(encoded[0,:]))
@@ -54,6 +69,16 @@ class Attention(nn.Module):
         return output
 
     def forward(self, data):
+        """ Do the forward pass in the Attention model: encodes, reparameterize and
+        decodes the input data.
+        
+        Arguments:
+            - data (array[TIME_INDEX][BATCH_INDEX][DATA_VECTOR]):
+        Returns:
+            - output (array like data): data encoded, reparametrized then decoded
+            -[yt, st]: llast hidden state
+            - mu: mean 
+            - log_var: log value of the variance """
         
         timesteps, batch_size, sample_size = data.size()
         
@@ -69,7 +94,6 @@ class Attention(nn.Module):
         
         for t in range(timesteps):
             # repeat the hidden state to the length of the sequence
-            stm = stm.view(batch_size,-1)
             _stm = stm.repeat(timesteps,1)
             _stm = _stm.view(timesteps, batch_size, -1)
             
@@ -79,7 +103,8 @@ class Attention(nn.Module):
             fa3 = nn.Linear(self.h_dim, 1)
             attention_input = fa1(_stm) + fa2(x_encoded)
             # calculate the attention probabilities
-            # this relates how much other timesteps contributed to this one.
+
+            # this relates how much other timesteps contributed to this one
             et = F.tanh(attention_input)
             et = fa3(et)
             at = torch.exp(et)
@@ -88,6 +113,7 @@ class Attention(nn.Module):
             
             # calculate the context vector
             context = torch.sum(torch.mul(at, x_encoded),0)
+
             # ~~~> calculate new hidden state
             # first calculate the "r" gate:
             fr1 = nn.Linear(sample_size, self.h_dim)
@@ -113,6 +139,8 @@ class Attention(nn.Module):
             # new hidden state:
             st = (1-zt)*stm + zt * s_tp
             
+
+            #calculate output:
             fo1 = nn.Linear(sample_size, sample_size)
             fo2 = nn.Linear(self.h_dim, sample_size)
             fo3 = nn.Linear(self.z_dim, sample_size)
@@ -121,5 +149,5 @@ class Attention(nn.Module):
             outputs = torch.cat((outputs, yt.view(1,batch_size,-1)),0)
             ytm, stm = yt, st
         outputs = outputs[1:,:]
-        outputs = outputs.view(timesteps,batch_size,-1)
+
         return outputs, [yt, st], mu, log_var
