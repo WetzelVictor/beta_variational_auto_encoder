@@ -11,7 +11,7 @@ from torch.autograd import Variable
 
 class AttentionRnn(nn.Module):
 
-    def __init__(self, sample_size, h_dim, z_dim, batch_size):
+    def __init__(self, sample_size, h_dim, z_dim):
         """
         Implements an Attention model that takes in a sequence encoded by an
         encoder and outputs the decoded states.
@@ -34,8 +34,8 @@ class AttentionRnn(nn.Module):
         self.h_dim = h_dim
         self.z_dim = z_dim
         self.sample_size = sample_size
-        self.batch_size = batch_size
-        self.hidden = self.init_hidden()
+        #self.batch_size = batch_size
+        #self.hidden = self.init_hidden()
         self.lstm = nn.LSTM(sample_size, h_dim)
         self.hiddentoz = nn.Linear(h_dim, z_dim*2)
         self.fa1 = nn.Linear(h_dim, h_dim)
@@ -55,11 +55,11 @@ class AttentionRnn(nn.Module):
         self.fo3 = nn.Linear(z_dim, sample_size)
         self.fs = nn.Linear(z_dim, h_dim)
 
-    def init_hidden(self):
+    def init_hidden(self, batch_size):
         # initiates hidden state for encoder lstm
         # the axes semantics are (num_layers, batch_size, hidden_dim)
-        return (Variable(torch.zeros(1, self.batch_size, self.h_dim)),
-                Variable(torch.zeros(1, self.batch_size, self.h_dim)))
+        return (Variable(torch.zeros(1, batch_size, self.h_dim)),
+                Variable(torch.zeros(1, batch_size, self.h_dim)))
 
     def reparametrize(self, mu, log_var):
         """"z = mean + eps * sigma where eps is sampled from N(0, 1)."""
@@ -68,7 +68,9 @@ class AttentionRnn(nn.Module):
         return output
 
     def encoder(self, data):
-        xtemp, self.hidden = self.lstm(data, self.hidden)
+        batch_size = data.size(1)
+        hidden = self.init_hidden(batch_size)
+        xtemp, hidden = self.lstm(data, hidden)
         x = self.hiddentoz(xtemp)
         mu, log_var = torch.chunk(x, 2, dim=2)
         x_encoded = self.reparametrize(mu, log_var)
@@ -77,20 +79,22 @@ class AttentionRnn(nn.Module):
     def get_initial_state(self, encoded):
         # apply the matrix on the first time step of encoded data
         # to get the initial s0
+        batch_size = encoded.size(1)
         s0 = F.tanh(self.fs(encoded[0, :]))
         # initialize a vector of (batchsize, output dim)
-        y0 = Variable(torch.zeros(self.batch_size, self.sample_size))
+        y0 = Variable(torch.zeros(batch_size, self.sample_size))
         return [y0, s0]
 
     def decoder(self, encoded):
         timesteps = encoded.size(0)
+        batch_size = encoded.size(1)
         ytm, stm = self.get_initial_state(encoded)
-        outputs = ytm.view(1, self.batch_size, -1)
+        outputs = ytm.view(1, batch_size, -1)
 
         for t in range(timesteps):
             # repeat the hidden state to the length of the sequence
             _stm = stm.repeat(timesteps, 1)
-            _stm = _stm.view(timesteps, self.batch_size, -1)
+            _stm = _stm.view(timesteps, batch_size, -1)
 
             # calculate the attention probabilities
             # this relates to how much other timesteps contributed to this one
@@ -119,7 +123,7 @@ class AttentionRnn(nn.Module):
 
             # calculate output:
             yt = F.softmax(self.fo1(ytm) + self.fo2(stm) + self.fo3(context))
-            outputs = torch.cat((outputs, yt.view(1, self.batch_size, -1)), 0)
+            outputs = torch.cat((outputs, yt.view(1, batch_size, -1)), 0)
             ytm, stm = yt, st
         outputs = outputs[1:, :]  # deleting yO
         return outputs, [yt, st]

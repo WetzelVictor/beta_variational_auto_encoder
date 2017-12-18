@@ -36,7 +36,7 @@ FS = 8000
 #%% Importing DATASET
 
 # Creating dataset
-DATASET_FILEPATH = 'data/datasets/DATASET_simple.obj'
+DATASET_FILEPATH = 'data/datasets/DATASET_test.obj'
 
 # If there is no archive of the dataset, it needs to be rendered
 if not pa.isfile(DATASET_FILEPATH):
@@ -147,19 +147,19 @@ for epoch in range(NB_EPOCH):
                                  './data/CQT/reconst_images_%d.png' %(epoch+1))
 
 #%% SAMPLING FROM LATENT SPACE
-FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, 50, -20, 20)
-FIXED_Z = to_var(torch.Tensor(FIXED_Z.contiguous()))
-
-# Sampling from model, reconstructing from spectrogram
-sampled_image = betaVAE.sample(FIXED_Z)
-reconst_images = sampled_image.view(BATCH_SIZE, 1, N_FFT, -1)
-torchvision.utils.save_image(reconst_images.data.cpu(), './data/CQT/sampled_images.png')
-
-#%%
-sampled_image_numpy = sampled_image.data.numpy()
-sampled_image_numpy =sampled_image_numpy[1,:].reshape(N_FFT/2+1,-1)
-
-reconst_sound = DATASET.audio_engine.griffinlim(sampled_image_numpy, N_iter=500)
-output_name = 'sampled_sound.wav'
-librosa.output.write_wav('data/SOUND/sampled_sound.wav',reconst_sound,DATASET.Fs)
+#FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, 50, -20, 20)
+#FIXED_Z = to_var(torch.Tensor(FIXED_Z.contiguous()))
+#
+## Sampling from model, reconstructing from spectrogram
+#sampled_image = betaVAE.sample(FIXED_Z)
+#reconst_images = sampled_image.view(BATCH_SIZE, 1, N_FFT, -1)
+#torchvision.utils.save_image(reconst_images.data.cpu(), './data/CQT/sampled_images.png')
+#
+##%%
+#sampled_image_numpy = sampled_image.data.numpy()
+#sampled_image_numpy =sampled_image_numpy[1,:].reshape(N_FFT/2+1,-1)
+#
+#reconst_sound = DATASET.audio_engine.griffinlim(sampled_image_numpy, N_iter=500)
+#output_name = 'sampled_sound.wav'
+#librosa.output.write_wav('data/SOUND/sampled_sound.wav',reconst_sound,DATASET.Fs)
 
