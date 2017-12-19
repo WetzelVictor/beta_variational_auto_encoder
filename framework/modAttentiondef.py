@@ -34,8 +34,6 @@ class AttentionRnn(nn.Module):
         self.h_dim = h_dim
         self.z_dim = z_dim
         self.sample_size = sample_size
-        #self.batch_size = batch_size
-        #self.hidden = self.init_hidden()
         self.lstm = nn.LSTM(sample_size, h_dim)
         self.hiddentoz = nn.Linear(h_dim, z_dim*2)
         self.fa1 = nn.Linear(h_dim, h_dim)
