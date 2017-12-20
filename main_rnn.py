@@ -103,7 +103,7 @@ if torch.cuda.is_available():
 OPTIMIZER = torch.optim.Adam(betaVAE.parameters(), lr=0.001)
 
 ITER_PER_EPOCH = len(DATASET)/BATCH_SIZE
-NB_EPOCH = 1
+NB_EPOCH = 50
 SOUND_LENGTH = np.shape(DATASET.__getitem__(9)[0])[0]
 
 # %%
