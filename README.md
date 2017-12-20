@@ -22,7 +22,7 @@ parameter was making the net not converge. So we ended up using this list of fea
 * **Inharmonicity**: 0 to 1 every 0.1
 * **Exponential time decay**: 0 to 10 every 1
 
-The `generateParameterSpace` module gets a default dictionnary that specifies those values (start, stop, increment). It generates a cardinal product (permutations) between every sampled dimensions. The dataset can get huge pretty quickly. A list of parameters is then given to the `AudioEngine` object that renders audio, spectrograms and CQT for every list of parameters.
+The `generateParameterSpace` module gets a default dictionary that specifies those values (start, stop, increment). It generates a cardinal product (permutations) between every sampled dimension. The dataset can get huge pretty quickly. A list of parameters is then given to the `AudioEngine` object that renders audio, spectrograms and CQT for every list of parameters.
 
 Here is a list of CQT randomly taken from the dataset:
 
@@ -38,8 +38,8 @@ Models are contained in the `framework` folder. Further details in the [Framewor
 When beta is set to 1, we obtain a simple VAE. Here you can see a visualization of the latent space.
 ![Latent space, beta=1](data/MNIST/GIFS/sampled_beta1_clean.gif)
 
-### MNIST: beta-VAE behaviour for differents Beta value
-The effect of beta is to force the disentagnlement of visual factors. Here you can see that the net use one latent dimension for number, and not for lower level features (line, curve, angle for instance).
+### MNIST: beta-VAE behaviour for differents Beta values
+The effect of beta is to force the disentanglement of visual factors. Here you can see that the net uses one latent dimension for number, and not for lower level features (line, curve, angle for instance).
 
 ![Latent space, beta = 4](data/MNIST/GIFS/sampled_beta4_clean.gif)
 ![Latent space, beta = 8](data/MNIST/GIFS/sampled_beta8_clean.gif)
