@@ -20,6 +20,7 @@ class AttentionRnn(nn.Module):
             sample_size: size of the samples
             h_dim: dimension of the hidden state and the attention matrices
             z_dim: dimension of the encoded space
+            batch_size: size of the minibatch
         Returns:
             Attention object
 
@@ -151,4 +152,5 @@ class AttentionRnn(nn.Module):
         Returns:
             - output: decoded vector
         """
-        return self.decoder(latent_vec)
+        sampled, _ = self.decoder(latent_vec)
+        return sampled
