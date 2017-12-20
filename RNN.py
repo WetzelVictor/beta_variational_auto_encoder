@@ -61,12 +61,12 @@ for i in xrange(45, 75):
         print('Mini_batch size is %d' % (BATCH_SIZE))
         break
 
+# Creating Dataloader, for training
 DATA_LOADER = torch.utils.data.DataLoader(dataset=DATASET,
                                           batch_size=BATCH_SIZE,
                                           shuffle=True)
 
 #%% Saving original image
-FIXED_INDEX = randint(BATCH_SIZE)
 
 # Saving an item from the dataset to debug
 DATA_ITER = iter(DATA_LOADER)
@@ -112,8 +112,7 @@ ITER_PER_EPOCH = len(DATASET)/BATCH_SIZE
 NB_EPOCH = 50
 SOUND_LENGTH = np.shape(DATASET.__getitem__(9)[0])[0]
 
-# %%
-""" TRAINING """
+# %% TRAINING 
 for epoch in range(NB_EPOCH):
     # Epoch
     print ' '
