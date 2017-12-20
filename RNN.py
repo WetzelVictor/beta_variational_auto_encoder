@@ -166,16 +166,18 @@ for epoch in range(NB_EPOCH):
                                  './data/RNN/reconst_images_%d.png' %(epoch+1))
 
 # %% SAMPLING FROM LATENT SPACE
-FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, 2, 0, 10)
-FIXED_Z = to_var(torch.Tensor(FIXED_Z.contiguous()))
-FIXED_Z = FIXED_Z.repeat(NB_FEN, 1)
-FIXED_Z = FIXED_Z.view(NB_FEN, BATCH_SIZE, Z_DIM)
+for i in xrange(Z_DIM):
+    Z_DIM_SEL = i+1
+    FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, Z_DIM_SEL, 0, 10)
+    FIXED_Z = to_var(torch.Tensor(FIXED_Z.contiguous()))
+    FIXED_Z = FIXED_Z.repeat(NB_FEN, 1)
+    FIXED_Z = FIXED_Z.view(NB_FEN, BATCH_SIZE, Z_DIM)
 
-# Sampling from model, reconstructing from spectrogram
-sampled_image = betaVAE.sample(FIXED_Z)
-sampled_image = sampled_image.transpose(0, 2)
-sampled_image = torch.chunk(sampled_image, N_FFT, 0)
-sampled_image = torch.cat(sampled_image, 2).squeeze()
-sampled_image = sampled_image.view(BATCH_SIZE, 1, N_FFT, -1)
-torchvision.utils.save_image(sampled_image.data.cpu(),
-                             './data/RNN/sampled_images.png')
+    # Sampling from model, reconstructing from spectrogram
+    sampled_image = betaVAE.sample(FIXED_Z)
+    sampled_image = sampled_image.transpose(0, 2)
+    sampled_image = torch.chunk(sampled_image, N_FFT, 0)
+    sampled_image = torch.cat(sampled_image, 2).squeeze()
+    sampled_image = sampled_image.view(BATCH_SIZE, 1, N_FFT, -1)
+    torchvision.utils.save_image(sampled_image.data.cpu(),
+                                 './data/spectro/sampled_images%d.png'%(Z_DIM_SEL))
