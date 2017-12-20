@@ -2,10 +2,10 @@
 This folder contains dataset, trained models, and images outputed during
 training and analysis.
 
-* **datasets**: several version of our dataset. ̀DATASET_test.obj` is for
+* **datasets**: several versions of our dataset. ̀DATASET_test.obj` serves for
   debugging purposes. ̀DATASET.obj` is the full dataset. Unfortunately, those
-files are to heavy for github. They are therefore hosted on other folders. Send
-me an e-mail if you want them.
+files are too heavy for github. They are therefore hosted on other folders. Send
+me an e-mail if you'd like access to them.
 * **models**: Several saved trained models.
 * **raw & processed**: MNIST dataset files
 * **SOUND**: some sounds gathered from our models here and there (nothing
