@@ -30,7 +30,7 @@ BATCH_SIZE = 50
 #LEN_EXAMPLES = 38400
 LEN_EXAMPLES = 2000
 # Net parameters
-Z_DIM, H_DIM = 30, 400
+Z_DIM, H_DIM = 20, 400
 FS = 8000
 
 # %% Importing DATASET
@@ -97,7 +97,7 @@ betaVAE = modAttentiondef.AttentionRnn(sample_size=N_FFT, h_dim=H_DIM,
 # BETA: Regularisation factor
 # 0: Maximum Likelihood
 # 1: Bayes solution
-BETA = 1
+BETA = 16
 
 # GPU computing if available
 if torch.cuda.is_available():
@@ -109,7 +109,7 @@ OPTIMIZER = torch.optim.Adam(betaVAE.parameters(), lr=0.001)
 
 # CONST FOR TRAINING
 ITER_PER_EPOCH = len(DATASET)/BATCH_SIZE
-NB_EPOCH = 50
+NB_EPOCH = 6
 SOUND_LENGTH = np.shape(DATASET.__getitem__(9)[0])[0]
 
 # %% TRAINING 
@@ -135,7 +135,7 @@ for epoch in range(NB_EPOCH):
         reconst_loss = -0.5*N_FFT*batch_size*torch.sum(2*np.pi*log_var)
         reconst_loss -= torch.sum(torch.sum((images-out).pow(2))/((2*log_var.exp())))
         
-        # KL-DIVERGENCE
+        # KL-DIVERGENCE
         kl_divergence = torch.sum(0.5 * (mu**2
                                          + torch.exp(log_var)
                                          - log_var - 1))
@@ -168,7 +168,7 @@ for epoch in range(NB_EPOCH):
 # %% SAMPLING FROM LATENT SPACE
 for i in xrange(Z_DIM):
     Z_DIM_SEL = i+1
-    FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, Z_DIM_SEL, 0, 10)
+    FIXED_Z = zdim_analysis(BATCH_SIZE, Z_DIM, Z_DIM_SEL, -20, 20)
     FIXED_Z = to_var(torch.Tensor(FIXED_Z.contiguous()))
     FIXED_Z = FIXED_Z.repeat(NB_FEN, 1)
     FIXED_Z = FIXED_Z.view(NB_FEN, BATCH_SIZE, Z_DIM)
@@ -180,4 +180,11 @@ for i in xrange(Z_DIM):
     sampled_image = torch.cat(sampled_image, 2).squeeze()
     sampled_image = sampled_image.view(BATCH_SIZE, 1, N_FFT, -1)
     torchvision.utils.save_image(sampled_image.data.cpu(),
-                                 './data/spectro/sampled_images%d.png'%(Z_DIM_SEL))
+                                 './data/RNN/sampled_images%d.png'%(Z_DIM_SEL))
+    
+#%%
+obj = betaVAE
+MODEL_FILEPATH = 'data/models/RNN_beta16_zdim20.model'
+file_obj = open(MODEL_FILEPATH, 'w')
+pickle.dump(obj, file_obj)
+print 'File is {0}'.format(MODEL_FILEPATH)
